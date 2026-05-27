@@ -11,6 +11,26 @@
     <a class="button-link" href="{% url 'crm:contact-create' %}">Create contact</a>
 </section>
 
+<section class="detail-grid">
+    <article class="panel">
+        <div class="section-header">
+            <h2>Bulk import contacts</h2>
+        </div>
+        <p class="muted">Upload a CSV file to add multiple contacts at once.</p>
+        <form method="post" action="{% url 'crm:contact-import' %}" enctype="multipart/form-data" class="stack-form">
+            {% csrf_token %}
+            {{ import_form.as_p }}
+            <button type="submit" class="button-link">Import CSV</button>
+        </form>
+    </article>
+    <article class="panel">
+        <h2>Sample import format</h2>
+        <p class="muted">Use this header row and column order in your CSV file.</p>
+        <pre class="code-sample">{{ sample_import_header }}
+{{ sample_import_row }}</pre>
+    </article>
+</section>
+
 <section class="card-grid">
     {% for contact in contacts %}
         <article class="panel">

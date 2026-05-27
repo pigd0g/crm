@@ -12,6 +12,10 @@ A simple Django-based sales CRM with:
 
 Copy `.env.example` to `.env` and update `DATABASE_URL` to point at your existing Postgres server.
 
+The database in `DATABASE_URL` must already exist. The container runs Django migrations on startup, but it does not create the PostgreSQL database itself.
+
+If your server is reachable but the container exits on startup, the most common cause is that the database name in `DATABASE_URL` does not exist yet.
+
 ## Run locally
 
 ```powershell
@@ -25,6 +29,8 @@ python manage.py runserver
 ```powershell
 docker build -t sales-crm .
 docker run --env-file .env -p 8000:8000 sales-crm
+docker run -d --name sales-crm --env-file .env -p 8000:8000 sales-crm
 ```
 
 The container runs migrations and collects static assets on startup before serving the app with Gunicorn.
+Its system timezone is set to `Australia/Melbourne`.

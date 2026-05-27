@@ -342,6 +342,17 @@ button,
     gap: 1rem;
 }
 
+.code-sample {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--line);
+    background: #f8fafc;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .timeline-meta {
     display: flex;
     justify-content: space-between;

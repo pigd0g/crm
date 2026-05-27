@@ -2,6 +2,15 @@ from django import forms
 
 from .models import Contact, Deal
 
+CONTACT_IMPORT_HEADERS = [
+    "first_name",
+    "last_name",
+    "job_title",
+    "company",
+    "email",
+    "phone",
+]
+
 
 class DateInput(forms.DateInput):
     input_type = "date"
@@ -21,6 +30,19 @@ class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
         fields = ["first_name", "last_name", "job_title", "company", "email", "phone"]
+
+
+class ContactImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label="CSV file",
+        help_text="Use UTF-8 CSV with the sample header shown below.",
+    )
+
+    def clean_csv_file(self):
+        csv_file = self.cleaned_data["csv_file"]
+        if not csv_file.name.lower().endswith(".csv"):
+            raise forms.ValidationError("Upload a CSV file.")
+        return csv_file
 
 
 class DealNoteForm(forms.Form):

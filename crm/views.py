@@ -1,11 +1,22 @@
+import csv
+from io import StringIO
+
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views import generic
 
-from .forms import AddContactToDealForm, ContactForm, DealForm, DealNoteForm
+from .forms import (
+    CONTACT_IMPORT_HEADERS,
+    AddContactToDealForm,
+    ContactForm,
+    ContactImportForm,
+    DealForm,
+    DealNoteForm,
+)
 from .models import Contact, Deal, DealActivity
 
 
@@ -118,6 +129,15 @@ class ContactListView(generic.ListView):
     def get_queryset(self):
         return Contact.objects.annotate(deal_count=Count("deals"))
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["import_form"] = kwargs.get("import_form", ContactImportForm())
+        context["sample_import_header"] = ",".join(CONTACT_IMPORT_HEADERS)
+        context["sample_import_row"] = (
+            "Ava,Patel,Head of Sales,Acme,ava.patel@example.com,+61 400 000 000"
+        )
+        return context
+
 
 class ContactCreateView(generic.CreateView):
     model = Contact
@@ -172,6 +192,81 @@ class ContactUpdateView(generic.UpdateView):
 
     def get_success_url(self):
         return reverse("crm:contact-list")
+
+
+class ContactImportView(generic.View):
+    def post(self, request):
+        form = ContactImportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            messages.error(request, "Import failed. Upload a valid CSV file.")
+            return self._render_contact_list_with_form(request, form)
+
+        try:
+            imported_count = self._import_contacts(form.cleaned_data["csv_file"])
+        except ValueError as error:
+            messages.error(request, f"Import failed. {error}")
+            return self._render_contact_list_with_form(request, form)
+
+        messages.success(request, f"Imported {imported_count} contact(s).")
+        return redirect("crm:contact-list")
+
+    def _render_contact_list_with_form(self, request, form):
+        view = ContactListView()
+        view.setup(request)
+        view.object_list = view.get_queryset()
+        context = view.get_context_data(import_form=form)
+        return view.render_to_response(context)
+
+    def _import_contacts(self, uploaded_file):
+        try:
+            csv_text = uploaded_file.read().decode("utf-8-sig")
+        except UnicodeDecodeError as error:
+            raise ValueError("The CSV file must be UTF-8 encoded.") from error
+
+        reader = csv.DictReader(StringIO(csv_text))
+        if reader.fieldnames is None:
+            raise ValueError("The CSV file is empty.")
+
+        headers = [field.strip() for field in reader.fieldnames]
+        missing_headers = [
+            header for header in CONTACT_IMPORT_HEADERS if header not in headers
+        ]
+        if missing_headers:
+            missing = ", ".join(missing_headers)
+            raise ValueError(f"Missing required column(s): {missing}.")
+
+        contacts = []
+        for line_number, row in enumerate(reader, start=2):
+            normalized_row = {
+                key.strip(): (value or "").strip()
+                for key, value in row.items()
+                if key is not None
+            }
+            if not any(normalized_row.values()):
+                continue
+
+            first_name = normalized_row["first_name"]
+            if not first_name:
+                raise ValueError(f"Row {line_number} is missing first_name.")
+
+            contacts.append(
+                Contact(
+                    first_name=first_name,
+                    last_name=normalized_row["last_name"],
+                    job_title=normalized_row["job_title"],
+                    company=normalized_row["company"],
+                    email=normalized_row["email"],
+                    phone=normalized_row["phone"],
+                )
+            )
+
+        if not contacts:
+            raise ValueError("The CSV file does not contain any contact rows.")
+
+        with transaction.atomic():
+            Contact.objects.bulk_create(contacts)
+
+        return len(contacts)
 
 
 class DealAddNoteView(generic.View):
