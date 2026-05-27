@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | Sales CRM{% endblock %}
+
+{% block content %}
+<section class="form-shell">
+    <article class="panel form-panel">
+        <h1>{{ title }}</h1>
+        {% if subtitle %}
+            <p class="muted">{{ subtitle }}</p>
+        {% endif %}
+        <form method="post" class="stack-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            {% if request.GET.deal %}
+                <input type="hidden" name="deal" value="{{ request.GET.deal }}">
+            {% endif %}
+            <div class="form-actions">
+                <button type="submit" class="button-link">Save</button>
+                <a class="text-link" href="{% url 'crm:pipeline' %}">Cancel</a>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

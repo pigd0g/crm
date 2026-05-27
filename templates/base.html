@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Sales CRM{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand-block">
+            <a class="brand" href="{% url 'crm:pipeline' %}">Sales CRM</a>
+            <p class="tagline">Simple pipeline, contacts, and deal history in one place.</p>
+        </div>
+        <nav class="site-nav">
+            <a href="{% url 'crm:pipeline' %}">Pipeline</a>
+            <a href="{% url 'crm:deal-list' %}">Deals</a>
+            <a href="{% url 'crm:contact-list' %}">Contacts</a>
+            <a class="button-link" href="{% url 'crm:deal-create' %}">New deal</a>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

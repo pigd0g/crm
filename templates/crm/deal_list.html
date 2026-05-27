@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Deals | Sales CRM{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Deals</h1>
+        <p>Table view for scanning pipeline health, stage, value, and linked contacts.</p>
+    </div>
+    <a class="button-link" href="{% url 'crm:deal-create' %}">Create deal</a>
+</section>
+
+<section class="panel">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Deal</th>
+                <th>Company</th>
+                <th>Stage</th>
+                <th>Contacts</th>
+                <th>Value</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deal in deals %}
+                <tr>
+                    <td><a href="{% url 'crm:deal-detail' deal.pk %}">{{ deal.name }}</a></td>
+                    <td>{{ deal.company }}</td>
+                    <td><span class="badge {{ deal.stage_style }}">{{ deal.get_stage_display }}</span></td>
+                    <td>{{ deal.contact_count }}</td>
+                    <td>{% if deal.value %}${{ deal.value|floatformat:2 }}{% else %}-{% endif %}</td>
+                    <td>{{ deal.updated_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-row">No deals yet. Add your first opportunity to get started.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

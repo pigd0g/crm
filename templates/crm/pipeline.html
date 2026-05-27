@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline | Sales CRM{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <h1>Pipeline overview</h1>
+        <p>Track every deal stage from lead through outcome, with quick access to contacts and history.</p>
+    </div>
+    <div class="hero-stats">
+        <div class="stat-card">
+            <span class="stat-label">Active deals</span>
+            <strong>{{ deal_total }}</strong>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Won value</span>
+            <strong>${{ won_value|floatformat:2 }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="board">
+    {% for column in columns %}
+        <article class="board-column">
+            <header class="column-header">
+                <h2>{{ column.label }}</h2>
+                <span>{{ column.deals|length }}</span>
+            </header>
+            <div class="column-body">
+                {% for deal in column.deals %}
+                    <a class="deal-card" href="{% url 'crm:deal-detail' deal.pk %}">
+                        <span class="badge {{ deal.stage_style }}">{{ deal.get_stage_display }}</span>
+                        <strong>{{ deal.name }}</strong>
+                        <span>{{ deal.company }}</span>
+                        <small>{{ deal.contact_count }} contact{{ deal.contact_count|pluralize }}</small>
+                        {% if deal.value %}
+                            <small>${{ deal.value|floatformat:2 }}</small>
+                        {% endif %}
+                    </a>
+                {% empty %}
+                    <p class="empty-state">No deals in this stage.</p>
+                {% endfor %}
+            </div>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}
