@@ -5,6 +5,8 @@ A simple Django-based sales CRM with:
 - a kanban pipeline and table/list deal views
 - multiple contacts per deal
 - deal-level notes and history
+- a dedicated import page for contact CSVs and deal-plus-contact CSV rows
+- hard-delete actions for deals and contacts in both the web UI and API
 - an external Postgres database configured through `.env`
 - a single Docker container for the application
 
@@ -34,3 +36,7 @@ docker run -d --name sales-crm --env-file .env -p 8000:8000 sales-crm
 
 The container runs migrations and collects static assets on startup before serving the app with Gunicorn.
 Its system timezone is set to `Australia/Melbourne`.
+
+## API
+
+The JSON API is documented in `API.md`, including the hard-delete `DELETE` endpoints for deals and contacts.

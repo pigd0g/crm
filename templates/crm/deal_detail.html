@@ -11,7 +11,13 @@
         </div>
         <p>{{ deal.company }}</p>
     </div>
-    <a class="button-link secondary" href="{% url 'crm:deal-edit' deal.pk %}">Edit deal</a>
+    <div class="page-actions">
+        <a class="button-link secondary" href="{% url 'crm:deal-edit' deal.pk %}">Edit deal</a>
+        <form method="post" action="{% url 'crm:deal-delete' deal.pk %}" onsubmit="return confirm('Delete this deal permanently?');">
+            {% csrf_token %}
+            <button type="submit" class="button-link danger">Delete deal</button>
+        </form>
+    </div>
 </section>
 
 <section class="detail-grid">
@@ -67,7 +73,25 @@
 
         <form method="post" action="{% url 'crm:deal-add-contact' deal.pk %}" class="stack-form">
             {% csrf_token %}
-            {{ add_contact_form.as_p }}
+            <p>
+                <label for="contact-search">Link an existing contact</label>
+                <input
+                    id="contact-search"
+                    type="text"
+                    list="available-contacts"
+                    placeholder="Search contacts by name, company, email, or phone"
+                    autocomplete="off"
+                    data-contact-search-input
+                    {% if not has_available_contacts %}disabled{% endif %}
+                >
+                <datalist id="available-contacts">
+                    {% for option in add_contact_form.contact_options %}
+                        <option value="{{ option.label }}" data-contact-id="{{ option.id }}"></option>
+                    {% endfor %}
+                </datalist>
+                {{ add_contact_form.existing_contact }}
+                <small class="muted">Type to search the CRM contact list, then choose the matching contact.</small>
+            </p>
             <button type="submit" class="button-link" {% if not has_available_contacts %}disabled{% endif %}>Link contact</button>
         </form>
         {% if not has_available_contacts %}
@@ -104,4 +128,32 @@
         </ol>
     </article>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (() => {
+        const searchInput = document.querySelector("[data-contact-search-input]");
+        const selectedContactInput = document.querySelector("#id_existing_contact");
+
+        if (!searchInput || !selectedContactInput) {
+            return;
+        }
+
+        const optionMap = new Map(
+            Array.from(document.querySelectorAll("#available-contacts option")).map((option) => [
+                option.value,
+                option.dataset.contactId,
+            ]),
+        );
+
+        const syncSelectedContact = () => {
+            selectedContactInput.value = optionMap.get(searchInput.value) || "";
+        };
+
+        searchInput.addEventListener("input", syncSelectedContact);
+        searchInput.addEventListener("change", syncSelectedContact);
+        searchInput.form?.addEventListener("submit", syncSelectedContact);
+    })();
+</script>
 {% endblock %}

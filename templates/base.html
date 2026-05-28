@@ -17,11 +17,12 @@
             <a href="{% url 'crm:pipeline' %}">Pipeline</a>
             <a href="{% url 'crm:deal-list' %}">Deals</a>
             <a href="{% url 'crm:contact-list' %}">Contacts</a>
+            <a href="{% url 'crm:import-page' %}">Import</a>
             <a class="button-link" href="{% url 'crm:deal-create' %}">New deal</a>
         </nav>
     </header>
 
-    <main class="page-shell">
+    <main class="page-shell{% block main_class %}{% endblock %}">
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
@@ -31,5 +32,6 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

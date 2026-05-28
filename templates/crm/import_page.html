@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Import | Sales CRM{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Import data</h1>
+        <p>Bulk import contacts or create deals with an optional linked contact from a single CSV row.</p>
+    </div>
+</section>
+
+<section class="detail-grid">
+    <article class="panel">
+        <div class="section-header">
+            <h2>Bulk import contacts</h2>
+        </div>
+        <p class="muted">Upload a CSV file to add multiple contacts at once.</p>
+        <form method="post" action="{% url 'crm:contact-import' %}" enctype="multipart/form-data" class="stack-form">
+            {% csrf_token %}
+            {{ contact_import_form.as_p }}
+            <button type="submit" class="button-link">Import contacts</button>
+        </form>
+    </article>
+    <article class="panel">
+        <h2>Contacts CSV example</h2>
+        <p class="muted">Use this header row and column order in your CSV file.</p>
+        <pre class="code-sample">{{ contact_sample_import_header }}
+{{ contact_sample_import_row }}</pre>
+    </article>
+</section>
+
+<section class="detail-grid section-spaced">
+    <article class="panel">
+        <div class="section-header">
+            <h2>Bulk import deals and contacts</h2>
+        </div>
+        <p class="muted">Import one deal per line and optionally create one linked contact on the same row.</p>
+        <form method="post" action="{% url 'crm:deal-contact-import' %}" enctype="multipart/form-data" class="stack-form">
+            {% csrf_token %}
+            {{ deal_contact_import_form.as_p }}
+            <button type="submit" class="button-link">Import deals and contacts</button>
+        </form>
+    </article>
+    <article class="panel">
+        <h2>Deals and contacts CSV example</h2>
+        <p class="muted">Leave the contact columns blank when a row should create only a deal.</p>
+        <pre class="code-sample">{{ deal_contact_sample_import_header }}
+{{ deal_contact_sample_import_row }}</pre>
+    </article>
+</section>
+{% endblock %}

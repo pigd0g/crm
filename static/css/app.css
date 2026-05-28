@@ -66,6 +66,10 @@ a {
     padding: 2rem;
 }
 
+.page-shell-wide {
+    max-width: none;
+}
+
 .messages {
     list-style: none;
     margin: 0 0 1rem;
@@ -95,7 +99,9 @@ a {
 .section-header,
 .page-heading-inline,
 .form-actions,
-.contact-actions {
+.contact-actions,
+.page-actions,
+.inline-form {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -171,6 +177,15 @@ button,
     color: #0f172a;
 }
 
+.button-link.danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.button-link.danger:hover {
+    background: #b91c1c;
+}
+
 .button-link[disabled] {
     opacity: 0.55;
     cursor: not-allowed;
@@ -190,21 +205,25 @@ button,
 .board {
     display: grid;
     grid-template-columns: repeat(6, minmax(220px, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
     overflow-x: auto;
     padding-bottom: 0.5rem;
 }
 
 .board-column {
     min-width: 220px;
-    background: transparent;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    padding: 1rem;
 }
 
 .column-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .column-header h2 {
@@ -220,11 +239,10 @@ button,
 .deal-card {
     display: grid;
     gap: 0.35rem;
-    background: var(--panel);
+    background: #f8fafc;
     border-radius: 1rem;
     padding: 1rem;
     border: 1px solid var(--line);
-    box-shadow: var(--shadow);
 }
 
 .badge {
@@ -320,6 +338,10 @@ button,
     background: #fff;
 }
 
+.stack-form input[type="hidden"] {
+    display: none;
+}
+
 .contact-list,
 .timeline {
     list-style: none;
@@ -351,6 +373,54 @@ button,
     overflow-x: auto;
     white-space: pre-wrap;
     word-break: break-word;
+}
+
+.details-toggle {
+    width: 100%;
+}
+
+.details-toggle summary {
+    list-style: none;
+}
+
+.details-toggle summary::-webkit-details-marker {
+    display: none;
+}
+
+.details-content {
+    margin-top: 1rem;
+}
+
+.section-spaced {
+    margin-top: 1.5rem;
+}
+
+.page-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.inline-form {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.inline-form label {
+    font-weight: 600;
+}
+
+.inline-form select {
+    min-width: 180px;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+    padding: 0.7rem 0.85rem;
+    font: inherit;
+    background: #fff;
+}
+
+.data-table td .contact-actions,
+.data-table td form {
+    margin: 0;
 }
 
 .timeline-meta {

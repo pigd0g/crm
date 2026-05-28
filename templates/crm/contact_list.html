@@ -11,48 +11,50 @@
     <a class="button-link" href="{% url 'crm:contact-create' %}">Create contact</a>
 </section>
 
-<section class="detail-grid">
-    <article class="panel">
-        <div class="section-header">
-            <h2>Bulk import contacts</h2>
+<section class="panel section-spaced">
+    <div class="section-header">
+        <div>
+            <h2>Contact information</h2>
+            <p class="muted">All CRM contacts in one table for quick scanning and editing.</p>
         </div>
-        <p class="muted">Upload a CSV file to add multiple contacts at once.</p>
-        <form method="post" action="{% url 'crm:contact-import' %}" enctype="multipart/form-data" class="stack-form">
-            {% csrf_token %}
-            {{ import_form.as_p }}
-            <button type="submit" class="button-link">Import CSV</button>
-        </form>
-    </article>
-    <article class="panel">
-        <h2>Sample import format</h2>
-        <p class="muted">Use this header row and column order in your CSV file.</p>
-        <pre class="code-sample">{{ sample_import_header }}
-{{ sample_import_row }}</pre>
-    </article>
-</section>
-
-<section class="card-grid">
-    {% for contact in contacts %}
-        <article class="panel">
-            <div class="section-header">
-                <h2>{{ contact.full_name }}</h2>
-                <a class="text-link" href="{% url 'crm:contact-edit' contact.pk %}">Edit</a>
-            </div>
-            <p class="muted">
-                {% if contact.job_title %}{{ contact.job_title }}{% else %}No title{% endif %}
-                {% if contact.company %} · {{ contact.company }}{% endif %}
-            </p>
-            <p>
-                {% if contact.email %}{{ contact.email }}{% else %}<span class="muted">No email</span>{% endif %}
-                <br>
-                {% if contact.phone %}{{ contact.phone }}{% else %}<span class="muted">No phone</span>{% endif %}
-            </p>
-            <p class="muted">{{ contact.deal_count }} linked deal{{ contact.deal_count|pluralize }}</p>
-        </article>
-    {% empty %}
-        <article class="panel">
-            <p>No contacts yet. Add one to start linking people to deals.</p>
-        </article>
-    {% endfor %}
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Linked deals</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+                <tr>
+                    <td>{{ contact.full_name }}</td>
+                    <td>{% if contact.job_title %}{{ contact.job_title }}{% else %}<span class="muted">-</span>{% endif %}</td>
+                    <td>{% if contact.company %}{{ contact.company }}{% else %}<span class="muted">-</span>{% endif %}</td>
+                    <td>{% if contact.email %}{{ contact.email }}{% else %}<span class="muted">-</span>{% endif %}</td>
+                    <td>{% if contact.phone %}{{ contact.phone }}{% else %}<span class="muted">-</span>{% endif %}</td>
+                    <td>{{ contact.deal_count }}</td>
+                    <td>
+                        <div class="contact-actions">
+                            <a class="text-link" href="{% url 'crm:contact-edit' contact.pk %}">Edit</a>
+                            <form method="post" action="{% url 'crm:contact-delete' contact.pk %}" onsubmit="return confirm('Delete this contact permanently?');">
+                                {% csrf_token %}
+                                <button type="submit" class="link-button danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-row">No contacts yet. Add one to start linking people to deals.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
 {% endblock %}

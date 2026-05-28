@@ -176,6 +176,11 @@ class ContactDetailApiView(ApiView):
         contact = form.save()
         return JsonResponse(serialize_contact(contact))
 
+    def delete(self, request, pk):
+        contact = get_object_or_404(Contact, pk=pk)
+        contact.delete()
+        return HttpResponse(status=204)
+
 
 class DealListApiView(ApiView):
     def get(self, request):
@@ -226,6 +231,11 @@ class DealDetailApiView(ApiView):
         deal = form.save()
         deal.refresh_from_db()
         return JsonResponse(serialize_deal(deal))
+
+    def delete(self, request, pk):
+        deal = get_object_or_404(Deal, pk=pk)
+        deal.delete()
+        return HttpResponse(status=204)
 
 
 class DealNoteApiView(ApiView):

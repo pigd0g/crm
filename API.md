@@ -165,6 +165,16 @@ Only send the fields you want to change.
 }
 ```
 
+### Delete contact
+
+`DELETE /api/v1/contacts/{contact_id}/`
+
+Permanently deletes the contact from the database. This is a hard delete; there is no soft-delete or archive state.
+
+**Response**
+
+Returns HTTP `204 No Content`.
+
 ### List deals
 
 `GET /api/v1/deals/`
@@ -215,6 +225,16 @@ Only send the fields you want to change.
 ```
 
 When `stage` changes, the system automatically records a `stage_change` activity entry.
+
+### Delete deal
+
+`DELETE /api/v1/deals/{deal_id}/`
+
+Permanently deletes the deal from the database, including its related activity history. This is a hard delete; there is no soft-delete or archive state.
+
+**Response**
+
+Returns HTTP `204 No Content`.
 
 ### Add a note to a deal
 

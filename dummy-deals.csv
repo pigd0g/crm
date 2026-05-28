@@ -1,0 +1,8 @@
+deal_name,deal_company,deal_stage,deal_value,deal_expected_close_date,deal_description,contact_first_name,contact_last_name,contact_job_title,contact_company,contact_email,contact_phone
+Northwind Trial,Northwind,free_trial,15000.00,2026-06-15,Priority expansion opportunity.,Ava,Patel,Head of Sales,Northwind,ava@example.com,+61 400 000 000
+Stark Industries Pilot,Stark Industries,lead,82000.00,2026-07-10,Enterprise pilot for defence vertical.,Tony,Stark,CEO,Stark Industries,tony@stark.com,+61 411 111 111
+Wayne Enterprises Outreach,Wayne Enterprises,initial_outreach,45000.00,2026-06-30,Reached out via LinkedIn for Q3 budget.,Bruce,Wayne,Director of Ops,Wayne Enterprises,b.wayne@wayneent.com,+61 422 222 222
+Oscorp Demo,Oscorp,free_trial,12000.00,2026-07-22,30-day platform trial for R&D team.,Norman,Osborn,Head of R&D,Oscorp,norman@oscorp.com,+61 433 333 333
+Daily Planet Won,Daily Planet,won,34000.00,2026-05-20,Closed after editorial team buy-in.,Lois,Lane,Editor,Daily Planet,lois@dailyplanet.com,+61 444 444 444
+LexCorp Lost,LexCorp,lost,95000.00,2026-06-01,Went with competitor due to pricing.,Lex,Luthor,CTO,LexCorp,lex@lexcorp.com,+61 455 555 555
+Pied Piper No Traction,Pied Piper,no_traction,5000.00,2026-08-15,Multiple follow-ups — no response.,Richard,Hendricks,CEO,Pied Piper,richard@piedpiper.com,+61 466 666 666

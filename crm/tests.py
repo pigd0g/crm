@@ -2,6 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
+from .forms import AddContactToDealForm, DEAL_CONTACT_IMPORT_HEADERS
 from .models import Contact, Deal, DealActivity
 
 
@@ -53,6 +54,15 @@ class DealViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Globex")
 
+    def test_deal_list_can_filter_by_stage(self):
+        Deal.objects.create(name="Won Expansion", company="Acme", stage=Deal.Stage.WON)
+
+        response = self.client.get(reverse("crm:deal-list"), {"stage": Deal.Stage.WON})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Won Expansion")
+        self.assertNotContains(response, "Globex Pilot")
+
     def test_add_contact_to_deal(self):
         response = self.client.post(
             reverse("crm:deal-add-contact", args=[self.deal.pk]),
@@ -62,6 +72,23 @@ class DealViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.deal.contacts.filter(pk=self.contact.pk).exists())
+
+    def test_deal_detail_renders_searchable_contact_options(self):
+        other_contact = Contact.objects.create(
+            first_name="Ava",
+            last_name="Patel",
+            company="Northwind",
+            email="ava@example.com",
+        )
+
+        response = self.client.get(reverse("crm:deal-detail", args=[self.deal.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'list="available-contacts"', html=False)
+        self.assertContains(
+            response,
+            AddContactToDealForm.build_contact_label(other_contact),
+        )
 
     def test_add_note_to_deal(self):
         response = self.client.post(
@@ -75,10 +102,19 @@ class DealViewTests(TestCase):
             self.deal.activities.filter(content__icontains="onboarding checklist").exists()
         )
 
+    def test_delete_deal_from_web(self):
+        response = self.client.post(
+            reverse("crm:deal-delete", args=[self.deal.pk]),
+            follow=True,
+        )
 
-class ContactImportTests(TestCase):
-    def test_contact_page_shows_sample_import_format(self):
-        response = self.client.get(reverse("crm:contact-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Deal.objects.filter(pk=self.deal.pk).exists())
+
+
+class ImportViewTests(TestCase):
+    def test_import_page_shows_both_sample_import_formats(self):
+        response = self.client.get(reverse("crm:import-page"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bulk import contacts")
@@ -86,6 +122,15 @@ class ContactImportTests(TestCase):
             response,
             "first_name,last_name,job_title,company,email,phone",
         )
+        self.assertContains(response, "Bulk import deals and contacts")
+        self.assertContains(response, ",".join(DEAL_CONTACT_IMPORT_HEADERS))
+
+    def test_contact_page_no_longer_shows_bulk_import_ui(self):
+        response = self.client.get(reverse("crm:contact-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Bulk import contacts")
+        self.assertContains(response, "Contact information")
 
     def test_import_contacts_from_csv(self):
         csv_file = SimpleUploadedFile(
@@ -109,6 +154,55 @@ class ContactImportTests(TestCase):
         self.assertTrue(Contact.objects.filter(email="ava@example.com").exists())
         self.assertContains(response, "Imported 2 contact(s).")
 
+    def test_import_deals_and_contacts_from_csv(self):
+        csv_file = SimpleUploadedFile(
+            "deals-and-contacts.csv",
+            (
+                b"deal_name,deal_company,deal_stage,deal_value,deal_expected_close_date,deal_description,"
+                b"contact_first_name,contact_last_name,contact_job_title,contact_company,contact_email,contact_phone\n"
+                b"Northwind Trial,Northwind,free_trial,15000.00,2026-06-15,Priority expansion opportunity.,"
+                b"Ava,Patel,Head of Sales,Northwind,ava@example.com,+61 400 000 000\n"
+            ),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            reverse("crm:deal-contact-import"),
+            {"csv_file": csv_file},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Deal.objects.count(), 1)
+        self.assertEqual(Contact.objects.count(), 1)
+        deal = Deal.objects.get()
+        contact = Contact.objects.get()
+        self.assertTrue(deal.contacts.filter(pk=contact.pk).exists())
+        self.assertContains(response, "Imported 1 deal(s) and 1 contact(s).")
+
+    def test_import_deals_without_contact_from_csv(self):
+        csv_file = SimpleUploadedFile(
+            "deals.csv",
+            (
+                b"deal_name,deal_company,deal_stage,deal_value,deal_expected_close_date,deal_description,"
+                b"contact_first_name,contact_last_name,contact_job_title,contact_company,contact_email,contact_phone\n"
+                b"Globex Expansion,Globex,lead,8000.00,2026-07-01,Initial discovery call scheduled.,,,,,,\n"
+            ),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            reverse("crm:deal-contact-import"),
+            {"csv_file": csv_file},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Deal.objects.count(), 1)
+        self.assertEqual(Contact.objects.count(), 0)
+        self.assertEqual(Deal.objects.get().contacts.count(), 0)
+        self.assertContains(response, "Imported 1 deal(s) and 0 contact(s).")
+
     def test_import_rejects_missing_required_header(self):
         csv_file = SimpleUploadedFile(
             "contacts.csv",
@@ -125,6 +219,22 @@ class ContactImportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Contact.objects.count(), 0)
         self.assertContains(response, "Missing required column(s): first_name.")
+
+    def test_delete_contact_from_web(self):
+        contact = Contact.objects.create(
+            first_name="Ava",
+            last_name="Patel",
+            company="Acme",
+            email="ava@example.com",
+        )
+
+        response = self.client.post(
+            reverse("crm:contact-delete", args=[contact.pk]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Contact.objects.filter(pk=contact.pk).exists())
 
 
 class ApiTests(TestCase):
@@ -212,3 +322,19 @@ class ApiTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["error"], "Unknown field(s): nickname.")
+
+    def test_delete_contact_api(self):
+        response = self.client.delete(
+            reverse("crm_api:contact-detail", args=[self.contact.pk]),
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Contact.objects.filter(pk=self.contact.pk).exists())
+
+    def test_delete_deal_api(self):
+        response = self.client.delete(
+            reverse("crm_api:deal-detail", args=[self.deal.pk]),
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Deal.objects.filter(pk=self.deal.pk).exists())
